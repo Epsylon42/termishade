@@ -1,0 +1,12 @@
+[package]
+name = "termishade"
+version = "0.1.0"
+authors = ["Epsylon <eepsylon.3@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+alga = "0.9.3"
+
+[dependencies.nalgebra]
+version = "0.21.1"
+features = ["alga"]

@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "termishade",
+    "example",
+    "termion-output"
+]

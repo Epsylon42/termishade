@@ -3,6 +3,7 @@ use termion_output::TermionOutput;
 use termishade::{
     rasterizer::TriangleRasterizer,
     renderer::{DrawParams, Renderer, TestRenderer},
+    blend,
     Program,
 };
 
@@ -40,7 +41,7 @@ impl Program for CubeProgram {
     ) -> glm::Vec4 {
         let brightness = light.normalize().dot(&normal.normalize());
         let light = normal.abs();
-        glm::vec4(light.x, light.y, light.z, 1.0).map(|a| a.max(0.0))
+        glm::vec4(light.x, light.y, light.z, 0.5).map(|a| a.max(0.0))
     }
 }
 
@@ -90,6 +91,7 @@ fn main() {
             DrawParams {
                 program: &CubeProgram,
                 rasterizer: &TriangleRasterizer,
+                blender: &blend::Replace,
                 depth_test_enabled: true,
             },
             &cube,

@@ -1,17 +1,13 @@
 use crate::Interpolate3;
 
-pub trait Rasterizer {
-    type Vertex;
-
-    fn rasterize(&self, vertices: &[Self::Vertex; 3], size: [usize; 2]) -> Vec<[usize; 2]>;
+pub trait Rasterizer<V> {
+    fn rasterize(&self, vertices: &[V; 3], size: [usize; 2]) -> Vec<[usize; 2]>;
 }
 
 pub struct TriangleRasterizer;
 
-impl Rasterizer for TriangleRasterizer {
-    type Vertex = na::Vector2<f32>;
-
-    fn rasterize(&self, vertices: &[Self::Vertex; 3], size: [usize; 2]) -> Vec<[usize; 2]> {
+impl Rasterizer<na::Vector2<f32>> for TriangleRasterizer {
+    fn rasterize(&self, vertices: &[na::Vector2<f32>; 3], size: [usize; 2]) -> Vec<[usize; 2]> {
 
         let [[sx, sy], [ex, ey]] = bounding_box(size, vertices);
 

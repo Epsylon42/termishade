@@ -1,8 +1,9 @@
-use crate::{Program, Rasterizer, Interpolate3};
+use crate::{Program, Rasterizer, Interpolate3, Blender};
 
-pub struct DrawParams<'a, P, R> {
+pub struct DrawParams<'a, P, R, B> {
     pub program: &'a P,
     pub rasterizer: &'a R,
+    pub blender: &'a B,
     pub depth_test_enabled: bool,
 }
 
@@ -31,9 +32,10 @@ pub trait Renderer
         }
     }
 
-    fn draw<P, R>(&mut self, params: DrawParams<P, R>, vertices: &[P::VertexIn], uniform: &P::Uniform)
+    fn draw<P, R, B>(&mut self, params: DrawParams<P, R, B>, vertices: &[P::VertexIn], uniform: &P::Uniform)
         where P: Program<VertexOut=na::Vector4<f32>, ColorOut=Self::Color>,
-              R: Rasterizer<Vertex=na::Vector2<f32>>,
+              R: Rasterizer<na::Vector2<f32>>,
+              B: Blender<Self::Color>,
               P::Intermediate: Interpolate3<na::Vector3<f32>> + Copy
     {
         let transformed = vertices
@@ -75,8 +77,9 @@ pub trait Renderer
                     point.xyz(),
                     intermediate
                 );
-                let color = params.program.fragment(&point, &intermediate, uniform);
-                self.color_buffer()[idx] = color;
+                let src = params.program.fragment(&point, &intermediate, uniform);
+                let color = self.color_buffer();
+                color[idx] = params.blender.blend(&color[idx], src);
             }
         }
     }

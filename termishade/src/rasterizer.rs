@@ -1,4 +1,3 @@
-use crate::Interpolate3;
 use crate::util::*;
 
 pub trait Rasterizer<V> {

@@ -10,6 +10,9 @@ pub mod blend;
 pub mod util;
 pub mod target;
 
+/// nalgebra extensions
+pub mod next;
+
 pub use interpolate::Interpolate3;
 pub use program::Program;
 pub use renderer::Renderer;

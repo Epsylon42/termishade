@@ -53,7 +53,7 @@ where
     V: InnerSpace + Copy,
     V::RealField: From<f32>
 {
-    fn to_barycentric(ps: [V; 3], p: V) -> [V::RealField; 3] {
+    fn to_barycentric(_: [V; 3], _: V) -> [V::RealField; 3] {
         [1.0.into(), 0.0.into(), 0.0.into()]
     }
 

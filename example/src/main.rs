@@ -6,6 +6,7 @@ use termishade::{
     target::RenderTarget,
     blend,
     Program,
+    next::Extend
 };
 
 struct CubeProgram;
@@ -28,21 +29,21 @@ impl Program for CubeProgram {
     type Uniform = Uniform;
     type Intermediate = glm::Vec3;
 
-    fn vertex(&self, v: &Vertex, Uniform { model, pv, .. }: &Uniform) -> (glm::Vec4, glm::Vec3) {
-        let pos = *pv * *model * glm::vec4(v.pos.x, v.pos.y, v.pos.z, 1.0);
-        let norm = *model * glm::vec4(v.norm.x, v.norm.y, v.norm.z, 0.0);
-        (pos, v.norm.xyz())
+    fn vertex(&self, v: &Vertex, Uniform { model, pv, .. }: &Uniform) -> (glm::Vec4, Self::Intermediate) {
+        let pos = *pv * *model * v.pos.ext(1.0);
+        (pos, v.norm)
     }
 
     fn fragment(
         &self,
-        p: &glm::Vec4,
-        normal: &glm::Vec3,
+        _: &glm::Vec4,
+        normal: &Self::Intermediate,
         Uniform { model, light, .. }: &Uniform,
     ) -> glm::Vec4 {
-        let brightness = light.normalize().dot(&normal.normalize());
-        let light = normal.abs().normalize();
-        glm::vec4(light.x, light.y, light.z, 0.5).map(|a| a.max(0.0))
+        let normal = (*model * normal.ext(0.0)).xyz().normalize();
+        let brightness = light.normalize().dot(&normal);
+        let light = normal.abs() * brightness;
+        (light.map(|a| a.max(0.0)) + glm::Vec3::repeat(0.05)).ext(1.0)
     }
 }
 

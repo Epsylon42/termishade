@@ -1,4 +1,5 @@
 use crate::{Program, Rasterizer, Interpolate3, Blender};
+use crate::util::*;
 
 pub struct DrawParams<'a, P, R, B> {
     pub program: &'a P,
@@ -54,7 +55,7 @@ pub trait Renderer
             let points = params.rasterizer.rasterize(&screenspace_vertices, size);
 
             for point in points {
-                let idx = flatten(size, point);
+                let idx = flatten_coord(size, point);
                 let point = to_normspace(size, point);
 
                 let z = <_>::interpolate(
@@ -83,30 +84,6 @@ pub trait Renderer
             }
         }
     }
-}
-
-fn map<T, U>(arr: [T; 3], mut f: impl FnMut(T) -> U) -> [U; 3] {
-    let [a, b, c] = arr;
-    [f(a), f(b), f(c)]
-}
-
-fn flatten([width, _]: [usize; 2], [x, y]: [usize; 2]) -> usize {
-    y * width + x
-}
-
-fn to_screenspace([width, height]: [usize; 2], p: na::Vector2<f32>) -> na::Vector2<f32> {
-    let mut v = p / 2.0 + na::Vector2::new(0.5, 0.5);
-    v.x *= width as f32;
-    v.y *= height as f32;
-    v
-}
-
-fn to_normspace([width, height]: [usize; 2], [x, y]: [usize; 2]) -> na::Vector2<f32> {
-    let mut v = na::Vector2::new(x as f32, y as f32);
-    v.x /= width as f32;
-    v.y /= height as f32;
-    v -= na::Vector2::new(0.5, 0.5);
-    v * 2.0
 }
 
 pub struct TestRenderer {

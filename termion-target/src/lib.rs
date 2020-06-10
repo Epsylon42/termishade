@@ -1,9 +1,11 @@
-pub struct TermionOutput {
+use termishade::RenderTarget;
+
+pub struct TermionTarget {
     width: usize,
     height: usize,
 }
 
-impl TermionOutput {
+impl TermionTarget {
     pub fn new() -> std::io::Result<Self> {
         let (w, h) = termion::terminal_size()?;
 
@@ -12,12 +14,14 @@ impl TermionOutput {
             height: h as usize,
         })
     }
+}
 
-    pub fn size(&self) -> [usize; 2] {
+impl RenderTarget<nalgebra::Vector4<f32>> for TermionTarget {
+    fn size(&self) -> [usize; 2] {
         [self.width, self.height]
     }
 
-    pub fn render(&self, buffer: &[nalgebra::Vector4<f32>]) {
+    fn draw(&mut self, buffer: &[nalgebra::Vector4<f32>]) {
         let mut cmd = format!("{}", termion::cursor::Goto(1, 1));
         for row in buffer.chunks(self.width).rev() {
             for pixel in row {

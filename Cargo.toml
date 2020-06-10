@@ -3,5 +3,5 @@
 members = [
     "termishade",
     "example",
-    "termion-output"
+    "termion-target"
 ]

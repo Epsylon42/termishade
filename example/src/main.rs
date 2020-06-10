@@ -1,8 +1,9 @@
 extern crate nalgebra_glm as glm;
-use termion_output::TermionOutput;
+use termion_target::TermionTarget;
 use termishade::{
     rasterizer::TriangleRasterizer,
     renderer::{DrawParams, Renderer, TestRenderer},
+    target::RenderTarget,
     blend,
     Program,
 };
@@ -40,7 +41,7 @@ impl Program for CubeProgram {
         Uniform { model, light, .. }: &Uniform,
     ) -> glm::Vec4 {
         let brightness = light.normalize().dot(&normal.normalize());
-        let light = normal.abs();
+        let light = normal.abs().normalize();
         glm::vec4(light.x, light.y, light.z, 0.5).map(|a| a.max(0.0))
     }
 }
@@ -52,6 +53,13 @@ fn main() {
             .unwrap_or_else(|| String::from("cube.obj")),
     )
     .unwrap();
+
+    let multisampling_level = std::env::args()
+        .nth(2)
+        .unwrap_or_else(|| String::from("1"))
+        .parse()
+        .expect("invalid multisampling level");
+
     let cube: obj::Obj = obj::load_obj(std::io::Cursor::new(input)).unwrap();
 
     let cube = cube
@@ -66,8 +74,8 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    let output = TermionOutput::new().unwrap();
-    let [w, h] = output.size();
+    let mut target = TermionTarget::new().unwrap();
+    let [w, h] = target.size_multisampled(multisampling_level);
     let mut renderer = TestRenderer::new(w, h);
 
     let view = glm::look_at(&glm::vec3(-5.0, 3.0, -4.0), &glm::zero(), &glm::Vec3::y());
@@ -98,6 +106,6 @@ fn main() {
             &uni,
         );
 
-        output.render(renderer.color_buffer());
+        target.draw_multisampled(renderer.color_buffer(), multisampling_level);
     }
 }

@@ -1,5 +1,5 @@
 extern crate nalgebra_glm as glm;
-use termion_target::TermionTarget;
+use termion_target::{TermionTarget, Key};
 use termishade::{
     rasterizer::TriangleRasterizer,
     renderer::{DrawParams, Renderer, TestRenderer},
@@ -79,12 +79,12 @@ fn main() {
     let [w, h] = target.size_multisampled(multisampling_level);
     let mut renderer = TestRenderer::new(w, h);
 
-    let view = glm::look_at(&glm::vec3(-5.0, 3.0, -4.0), &glm::zero(), &glm::Vec3::y());
+    let mut view = glm::look_at(&glm::vec3(-5.0, 3.0, -4.0), &glm::zero(), &glm::Vec3::y());
 
     let projection = glm::perspective::<f32>(w as f32 / h as f32, 3.14 / 3.0, 0.1, 10.0);
 
     let start = std::time::Instant::now();
-    loop {
+    'main: loop {
         let now = std::time::Instant::now();
         let model: glm::Mat4 = glm::rotation((now - start).as_secs_f32(), &glm::Vec3::y());
 
@@ -108,5 +108,18 @@ fn main() {
         );
 
         target.draw_multisampled(renderer.color_buffer(), multisampling_level);
+
+        while let Some(key) = target.get_key() {
+            match key {
+                Key::Esc | Key::Ctrl('c') => break 'main,
+                Key::Left => {
+                    view = glm::rotation(-0.01, &glm::Vec3::y()) * view;
+                }
+                Key::Right => {
+                    view = glm::rotation(0.01, &glm::Vec3::y()) * view;
+                }
+                _ => {}
+            }
+        }
     }
 }

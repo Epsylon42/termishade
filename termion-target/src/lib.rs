@@ -1,8 +1,17 @@
+use std::io::{self, Write};
+
+use termion::AsyncReader;
+use termion::input::{TermRead, Keys};
+use termion::raw::{RawTerminal, IntoRawMode};
 use termishade::RenderTarget;
+
+pub use termion::event::Key;
 
 pub struct TermionTarget {
     width: usize,
     height: usize,
+    input: Keys<AsyncReader>,
+    raw: RawTerminal<io::Stdout>,
 }
 
 impl TermionTarget {
@@ -12,7 +21,15 @@ impl TermionTarget {
         Ok(Self {
             width: w as usize,
             height: h as usize,
+            input: termion::async_stdin().keys(),
+            raw: io::stdout().into_raw_mode()?,
         })
+    }
+
+    pub fn get_key(&mut self) -> Option<Key> {
+        self.input
+            .next()
+            .and_then(Result::ok)
     }
 }
 
@@ -38,11 +55,12 @@ impl RenderTarget<nalgebra::Vector4<f32>> for TermionTarget {
             }
         }
 
-        print!(
+        write!(
+            self.raw,
             "{}{}{}",
             termion::cursor::Hide,
             cmd,
             termion::cursor::Show
-        );
+        ).unwrap();
     }
 }

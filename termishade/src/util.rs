@@ -24,7 +24,17 @@ pub fn to_normspace([width, height]: [usize; 2], [x, y]: [usize; 2]) -> na::Vect
     v * 2.0
 }
 
-pub fn bounding_box([width, height]: [usize; 2], ps: &[na::Vector2<f32>; 3]) -> [[usize; 2]; 2] {
+pub fn bounding_box(
+    [width, height]: [usize; 2],
+    ps: &[na::Vector2<f32>; 3],
+) -> Option<[[usize; 2]; 2]> {
+    if ps
+        .into_iter()
+        .all(|p| p.x < 0.0 || p.x > (width - 1) as f32 || p.y < 0.0 || p.y > (height - 1) as f32)
+    {
+        return None;
+    }
+
     let [a, b, c] = ps;
 
     let sx = (a.x).min(b.x).min(c.x).floor().max(0.0) as usize;
@@ -32,7 +42,7 @@ pub fn bounding_box([width, height]: [usize; 2], ps: &[na::Vector2<f32>; 3]) -> 
     let ex = (a.x).max(b.x).max(c.x).ceil().min((width - 1) as f32) as usize;
     let ey = (a.y).max(b.y).max(c.y).ceil().min((height - 1) as f32) as usize;
 
-    [[sx, sy], [ex, ey]]
+    Some([[sx, sy], [ex, ey]])
 }
 
 pub fn is_point_inside_triangle(ps: &[na::Vector2<f32>; 3], p: na::Vector2<f32>) -> bool {

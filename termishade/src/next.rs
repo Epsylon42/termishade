@@ -7,7 +7,7 @@ pub trait Extend {
     fn ext(&self, a: Self::N) -> Self::Res;
 }
 
-impl <N: Scalar + Clone> Extend for na::Vector2<N> {
+impl<N: Scalar + Clone> Extend for na::Vector2<N> {
     type N = N;
     type Res = na::Vector3<N>;
 
@@ -16,7 +16,7 @@ impl <N: Scalar + Clone> Extend for na::Vector2<N> {
     }
 }
 
-impl <N: Scalar + Clone> Extend for na::Vector3<N> {
+impl<N: Scalar + Clone> Extend for na::Vector3<N> {
     type N = N;
     type Res = na::Vector4<N>;
 

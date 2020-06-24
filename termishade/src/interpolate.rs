@@ -42,16 +42,16 @@ where
 #[derive(Debug, Clone, Copy)]
 pub struct Flat<T>(pub T);
 
-impl <T> From<T> for Flat<T> {
+impl<T> From<T> for Flat<T> {
     fn from(t: T) -> Self {
         Flat(t)
     }
 }
 
-impl <T, V> Interpolate3<V> for Flat<T>
+impl<T, V> Interpolate3<V> for Flat<T>
 where
     V: InnerSpace + Copy,
-    V::RealField: From<f32>
+    V::RealField: From<f32>,
 {
     fn to_barycentric(_: [V; 3], _: V) -> [V::RealField; 3] {
         [1.0.into(), 0.0.into(), 0.0.into()]

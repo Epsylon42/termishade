@@ -12,8 +12,9 @@ pub trait RenderTarget<Color: 'static> {
     }
 
     fn draw_multisampled(&mut self, data: &[Color], level: u8)
-        where Color: VectorSpace + for<'a> std::iter::Sum<&'a Color>,
-              Color::Field: From<f32>
+    where
+        Color: VectorSpace + for<'a> std::iter::Sum<&'a Color>,
+        Color::Field: From<f32>,
     {
         let [width, height] = self.size();
         let [mwidth, mheight] = self.size_multisampled(level);
@@ -24,8 +25,11 @@ pub trait RenderTarget<Color: 'static> {
         let buf = iproduct!(0..height, 0..width)
             .map(|(y, x)| {
                 iproduct!(0..level, 0..level)
-                    .map(|(dx, dy)| &data[flatten_coord([mwidth, mheight], [x * level + dx, y * level + dy])])
-                    .sum::<Color>() * Color::Field::from((level as f32).powi(2).recip())
+                    .map(|(dx, dy)| {
+                        &data[flatten_coord([mwidth, mheight], [x * level + dx, y * level + dy])]
+                    })
+                    .sum::<Color>()
+                    * Color::Field::from((level as f32).powi(2).recip())
             })
             .collect::<Vec<_>>();
 

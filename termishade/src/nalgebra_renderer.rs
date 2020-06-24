@@ -1,5 +1,5 @@
-use crate::{Program, Rasterizer, Interpolate3, Blender};
 use crate::util::*;
+use crate::{base_renderer::BaseRenderer, Blender, Interpolate3, Program, Rasterizer};
 
 pub struct DrawParams<'a, P, R, B> {
     pub program: &'a P,
@@ -8,32 +8,8 @@ pub struct DrawParams<'a, P, R, B> {
     pub depth_test_enabled: bool,
 }
 
-pub trait Renderer
-{
-    type Color;
-    type Vertex;
-
-    fn size(&self) -> [usize; 2];
-
-    fn color_buffer(&mut self) -> &mut [Self::Color];
-    fn depth_buffer(&mut self) -> &mut [f32];
-
-    fn clear_color(&mut self, color: &Self::Color)
-        where Self::Color: Clone
-    {
-        for c in self.color_buffer() {
-            *c = color.clone();
-        }
-    }
-
-    fn clear_depth(&mut self, depth: f32)
-    {
-        for d in self.depth_buffer() {
-            *d = depth;
-        }
-    }
-
-    fn draw<P, R, B>(&mut self, params: DrawParams<P, R, B>, vertices: &[P::VertexIn], uniform: &P::Uniform)
+pub trait NalgebraRenderer: BaseRenderer {
+   fn draw<P, R, B>(&mut self, params: DrawParams<P, R, B>, vertices: &[P::VertexIn], uniform: &P::Uniform)
         where P: Program<VertexOut=na::Vector4<f32>, ColorOut=Self::Color>,
               R: Rasterizer<na::Vector2<f32>>,
               B: Blender<Self::Color>,
@@ -86,37 +62,4 @@ pub trait Renderer
     }
 }
 
-pub struct TestRenderer {
-    width: usize,
-    height: usize,
-    color: Vec<na::Vector4<f32>>,
-    depth: Vec<f32>,
-}
-
-impl TestRenderer {
-    pub fn new(width: usize, height: usize) -> Self {
-        Self {
-            width,
-            height,
-            color: vec![na::Vector4::zeros(); width * height],
-            depth: vec![0.0; width * height],
-        }
-    }
-}
-
-impl Renderer for TestRenderer {
-    type Color = na::Vector4<f32>;
-    type Vertex = na::Vector4<f32>;
-
-    fn size(&self) -> [usize; 2] {
-        [self.width, self.height]
-    }
-
-    fn color_buffer(&mut self) -> &mut [Self::Color] {
-        &mut self.color
-    }
-
-    fn depth_buffer(&mut self) -> &mut [f32] {
-        &mut self.depth
-    }
-}
+impl<T> NalgebraRenderer for T where T: BaseRenderer<Color = na::Vector4<f32>> {}

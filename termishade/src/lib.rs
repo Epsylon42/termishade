@@ -2,20 +2,24 @@
 extern crate itertools;
 extern crate nalgebra as na;
 
-pub mod interpolate;
-pub mod program;
-pub mod renderer;
-pub mod rasterizer;
+pub mod base_renderer;
 pub mod blend;
-pub mod util;
+pub mod color_depth_renderer;
+pub mod interpolate;
+pub mod nalgebra_renderer;
+pub mod program;
+pub mod rasterizer;
 pub mod target;
+pub mod util;
 
 /// nalgebra extensions
 pub mod next;
 
-pub use interpolate::Interpolate3;
-pub use program::Program;
-pub use renderer::Renderer;
-pub use rasterizer::Rasterizer;
+pub use base_renderer::BaseRenderer;
 pub use blend::Blender;
+pub use color_depth_renderer::ColorDepthRenderer;
+pub use interpolate::Interpolate3;
+pub use nalgebra_renderer::{DrawParams, NalgebraRenderer};
+pub use program::Program;
+pub use rasterizer::Rasterizer;
 pub use target::RenderTarget;

@@ -1,12 +1,8 @@
 extern crate nalgebra_glm as glm;
-use termion_target::{TermionTarget, Key};
+use termion_target::{Key, TermionTarget};
 use termishade::{
-    rasterizer::TriangleRasterizer,
-    renderer::{DrawParams, Renderer, TestRenderer},
-    target::RenderTarget,
-    blend,
-    Program,
-    next::Extend
+    blend, next::Extend, rasterizer::TriangleRasterizer, target::RenderTarget, BaseRenderer,
+    ColorDepthRenderer, DrawParams, NalgebraRenderer, Program,
 };
 
 struct CubeProgram;
@@ -29,7 +25,11 @@ impl Program for CubeProgram {
     type Uniform = Uniform;
     type Intermediate = glm::Vec3;
 
-    fn vertex(&self, v: &Vertex, Uniform { model, pv, .. }: &Uniform) -> (glm::Vec4, Self::Intermediate) {
+    fn vertex(
+        &self,
+        v: &Vertex,
+        Uniform { model, pv, .. }: &Uniform,
+    ) -> (glm::Vec4, Self::Intermediate) {
         let pos = *pv * *model * v.pos.ext(1.0);
         (pos, v.norm)
     }
@@ -77,7 +77,7 @@ fn main() {
 
     let mut target = TermionTarget::new().unwrap();
     let [w, h] = target.size_multisampled(multisampling_level);
-    let mut renderer = TestRenderer::new(w, h);
+    let mut renderer = ColorDepthRenderer::new(w, h);
 
     let mut view = glm::look_at(&glm::vec3(-5.0, 3.0, -4.0), &glm::zero(), &glm::Vec3::y());
 

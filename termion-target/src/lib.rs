@@ -1,8 +1,8 @@
 use std::io::{self, Write};
 
+use termion::input::{Keys, TermRead};
+use termion::raw::{IntoRawMode, RawTerminal};
 use termion::AsyncReader;
-use termion::input::{TermRead, Keys};
-use termion::raw::{RawTerminal, IntoRawMode};
 use termishade::RenderTarget;
 
 pub use termion::event::Key;
@@ -27,15 +27,13 @@ impl TermionTarget {
     }
 
     pub fn get_key(&mut self) -> Option<Key> {
-        self.input
-            .next()
-            .and_then(Result::ok)
+        self.input.next().and_then(Result::ok)
     }
 }
 
 impl RenderTarget<nalgebra::Vector4<f32>> for TermionTarget {
     fn size(&self) -> [usize; 2] {
-        [self.width, self.height*2]
+        [self.width, self.height * 2]
     }
 
     fn draw(&mut self, buffer: &[nalgebra::Vector4<f32>]) {
@@ -61,6 +59,7 @@ impl RenderTarget<nalgebra::Vector4<f32>> for TermionTarget {
             termion::cursor::Hide,
             cmd,
             termion::cursor::Show
-        ).unwrap();
+        )
+        .unwrap();
     }
 }

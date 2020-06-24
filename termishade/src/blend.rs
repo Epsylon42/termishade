@@ -4,7 +4,7 @@ pub trait Blender<T> {
 
 pub struct Replace;
 
-impl <T> Blender<T> for Replace {
+impl<T> Blender<T> for Replace {
     fn blend(&self, _: &T, src: T) -> T {
         src
     }

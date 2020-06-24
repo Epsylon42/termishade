@@ -2,7 +2,7 @@ extern crate nalgebra_glm as glm;
 use termion_target::{Key, TermionTarget};
 use termishade::{
     blend, next::Extend, rasterizer::TriangleRasterizer, target::RenderTarget, BaseRenderer,
-    ColorDepthRenderer, DrawParams, NalgebraRenderer, Program,
+    ColorDepthRenderer, DrawParams, NalgebraParRenderer, Program,
 };
 
 struct CubeProgram;

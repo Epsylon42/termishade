@@ -3,5 +3,6 @@
 members = [
     "termishade",
     "example",
-    "termion-target"
+    "termion-target",
+    "derive-interpolate"
 ]

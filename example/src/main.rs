@@ -1,4 +1,5 @@
 extern crate nalgebra_glm as glm;
+use derive_interpolate::Interpolate;
 use termion_target::{Key, TermionTarget};
 use termishade::{
     blend, next::Extend, rasterizer::TriangleRasterizer, target::RenderTarget, BaseRenderer,
@@ -18,29 +19,39 @@ struct Uniform {
     light: glm::Vec3,
 }
 
+#[derive(Clone, Copy, Interpolate)]
+struct Intermediate {
+    normal: glm::Vec3,
+}
+
 impl Program for CubeProgram {
     type VertexIn = Vertex;
     type VertexOut = glm::Vec4;
     type ColorOut = glm::Vec4;
     type Uniform = Uniform;
-    type Intermediate = glm::Vec3;
+    type Intermediate = Intermediate;
 
     fn vertex(
         &self,
         v: &Vertex,
-        Uniform { model, pv, .. }: &Uniform,
+        uniform: &Uniform,
     ) -> (glm::Vec4, Self::Intermediate) {
-        let pos = *pv * *model * v.pos.ext(1.0);
-        (pos, v.norm)
+        let Uniform { model, pv, .. } = *uniform;
+
+        let pos = pv * model * v.pos.ext(1.0);
+        (pos, Intermediate { normal: v.norm })
     }
 
     fn fragment(
         &self,
         _: &glm::Vec4,
-        normal: &Self::Intermediate,
-        Uniform { model, light, .. }: &Uniform,
+        int: &Self::Intermediate,
+        uniform: &Uniform,
     ) -> glm::Vec4 {
-        let normal = (*model * normal.ext(0.0)).xyz().normalize();
+        let Intermediate { normal } = *int;
+        let Uniform { model, light, .. } = *uniform;
+
+        let normal = (model * normal.ext(0.0)).xyz().normalize();
         let brightness = light.normalize().dot(&normal);
         let light = normal.abs() * brightness;
         (light.map(|a| a.max(0.0)) + glm::Vec3::repeat(0.05)).ext(1.0)

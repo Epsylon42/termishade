@@ -10,6 +10,7 @@ edition = "2018"
 termion-target = { path = "../termion-target" }
 nalgebra-glm = "0.7.0"
 obj-rs = "0.6.1"
+derive-interpolate = { path = "../derive-interpolate" }
 
 [dependencies.termishade]
 path = "../termishade"

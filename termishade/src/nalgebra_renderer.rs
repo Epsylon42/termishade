@@ -1,8 +1,11 @@
 use crate::util::*;
 use crate::{base_renderer::BaseRenderer, Blender, Interpolate3, Program, Rasterizer};
 
-use parking_lot::Mutex;
-use rayon::prelude::*;
+#[cfg(feature = "parallel")]
+use {
+    parking_lot::Mutex,
+    rayon::prelude::*,
+};
 
 pub struct DrawParams<'a, P, R, B> {
     pub program: &'a P,
@@ -22,6 +25,7 @@ pub trait NalgebraRenderer: BaseRenderer {
         R: Rasterizer<na::Vector2<f32>>,
         B: Blender<Self::Color>,
         P::Intermediate: Interpolate3<na::Vector3<f32>> + Copy,
+        Self: Sized
     {
         let transformed = vertices
             .into_iter()

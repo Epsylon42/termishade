@@ -4,5 +4,6 @@ members = [
     "termishade",
     "example",
     "termion-target",
-    "derive-interpolate"
+    "derive-interpolate",
+    "webrender"
 ]

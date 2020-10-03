@@ -6,7 +6,13 @@ use termishade::{
     ColorDepthRenderer, DrawParams, Program, NalgebraRenderer
 };
 
+#[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
+
+#[cfg(feature = "wasm")]
+type ErrString = JsValue;
+#[cfg(not(feature = "wasm"))]
+type ErrString = String;
 
 struct CubeProgram;
 
@@ -51,7 +57,7 @@ impl Program for CubeProgram {
     }
 }
 
-#[wasm_bindgen]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub struct Webrender {
     t: f32,
     model: Vec<Vertex>,
@@ -60,12 +66,12 @@ pub struct Webrender {
     target: TermionTarget,
 }
 
-#[wasm_bindgen]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
 impl Webrender {
-    #[wasm_bindgen(constructor)]
-    pub fn new(width: usize, height: usize, obj: &str) -> Result<Webrender, JsValue> {
+    #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
+    pub fn new(width: usize, height: usize, rgb: bool, obj: &str) -> Result<Webrender, ErrString> {
         let model: obj::Obj =
-            obj::load_obj(std::io::Cursor::new(obj)).map_err(|_| JsValue::from_str("Invalid object"))?;
+            obj::load_obj(std::io::Cursor::new(obj)).map_err(|_| ErrString::from("Invalid object"))?;
 
         let model = model
             .indices
@@ -79,7 +85,8 @@ impl Webrender {
             })
             .collect::<Vec<_>>();
 
-        let target = TermionTarget::new_without_io(width, height);
+        let target = TermionTarget::new_without_io(width, height)
+            .reduced_palette(!rgb);
         let renderer = ColorDepthRenderer::new(width, height);
 
         let projection =

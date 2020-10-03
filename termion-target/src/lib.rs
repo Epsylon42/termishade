@@ -10,6 +10,7 @@ pub use termion::event::Key;
 pub struct TermionTarget {
     width: usize,
     height: usize,
+    reduced_palette: bool,
     input: Option<Keys<AsyncReader>>,
     raw: Option<RawTerminal<io::Stdout>>,
 }
@@ -21,6 +22,7 @@ impl TermionTarget {
         Ok(Self {
             width: w as usize,
             height: h as usize,
+            reduced_palette: false,
             input: Some(termion::async_stdin().keys()),
             raw: Some(io::stdout().into_raw_mode()?),
         })
@@ -30,9 +32,15 @@ impl TermionTarget {
         Self {
             width,
             height,
+            reduced_palette: false,
             input: None,
             raw: None,
         }
+    }
+
+    pub fn reduced_palette(mut self, reduced: bool) -> Self {
+        self.reduced_palette = reduced;
+        self
     }
 
     pub fn get_key(&mut self) -> Option<Key> {
@@ -44,20 +52,33 @@ impl TermionTarget {
 
         for row in buffer.chunks(self.width).rev().step_by(2) {
             for pixel in row {
-                let pixel = pixel.map(|a| a.max(0.0).min(1.0)) * 255.0;
-                cmd += &format!(
-                    "{} ",
-                    termion::color::Bg(termion::color::Rgb(
-                        pixel.x as u8,
-                        pixel.y as u8,
-                        pixel.z as u8
-                    ))
-                );
+                let pixel = pixel.map(|a| a.max(0.0).min(1.0));
+                if self.reduced_palette {
+                    let pixel = pixel * 5.0;
+                    cmd += &format!(
+                        "{} ",
+                        termion::color::Bg(termion::color::AnsiValue::rgb(
+                            pixel.x as u8,
+                            pixel.y as u8,
+                            pixel.z as u8
+                        ))
+                    );
+                } else {
+                    let pixel = pixel * 255.0;
+                    cmd += &format!(
+                        "{} ",
+                        termion::color::Bg(termion::color::Rgb(
+                            pixel.x as u8,
+                            pixel.y as u8,
+                            pixel.z as u8
+                        ))
+                    );
+                }
             }
             cmd += "\n";
         }
 
-        format!("{}{}{}", termion::cursor::Hide, cmd, termion::cursor::Show)
+        cmd
     }
 }
 

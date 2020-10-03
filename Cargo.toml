@@ -7,3 +7,6 @@ members = [
     "derive-interpolate",
     "webrender"
 ]
+
+[patch.crates-io]
+termion = { path = "./termion" }

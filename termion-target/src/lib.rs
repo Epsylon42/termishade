@@ -54,6 +54,7 @@ impl TermionTarget {
                     ))
                 );
             }
+            cmd += "\n";
         }
 
         format!("{}{}{}", termion::cursor::Hide, cmd, termion::cursor::Show)

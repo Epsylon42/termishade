@@ -9,6 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 termion-target = { path = "../termion-target" }
+termion = { path = "../termion", features = ["null"] }
 nalgebra-glm = "0.7.0"
 obj-rs = "0.6.1"
 derive-interpolate = { path = "../derive-interpolate" }

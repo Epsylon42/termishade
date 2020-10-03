@@ -62,6 +62,7 @@ pub struct Webrender {
 
 #[wasm_bindgen]
 impl Webrender {
+    #[wasm_bindgen(constructor)]
     pub fn new(width: usize, height: usize, obj: &str) -> Result<Webrender, JsValue> {
         let model: obj::Obj =
             obj::load_obj(std::io::Cursor::new(obj)).map_err(|_| JsValue::from_str("Invalid object"))?;

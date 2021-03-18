@@ -48,34 +48,48 @@ impl TermionTarget {
     }
     
     pub fn draw_to_string(&self, buffer: &[nalgebra::Vector4<f32>]) -> String {
-        let mut cmd = format!("{}", termion::cursor::Goto(1, 1));
+        let mut cmd = String::new();
+        let mut prev_color = None;
 
-        for row in buffer.chunks(self.width).rev().step_by(2) {
+        for (row_num, row) in buffer.chunks(self.width).rev().step_by(2).enumerate() {
+            cmd += &format!("{}", termion::cursor::Goto(1, row_num as u16 + 1));
             for pixel in row {
                 let pixel = pixel.map(|a| a.max(0.0).min(1.0));
+
                 if self.reduced_palette {
-                    let pixel = pixel * 5.0;
+                    let u8pixel = pixel.map(|a| (a * 5.0) as u8);
+                    if prev_color == Some(u8pixel) {
+                        cmd.push(' ');
+                        continue;
+                    }
+                    prev_color = Some(u8pixel);
+
                     cmd += &format!(
                         "{} ",
                         termion::color::Bg(termion::color::AnsiValue::rgb(
-                            pixel.x as u8,
-                            pixel.y as u8,
-                            pixel.z as u8
+                            u8pixel.x,
+                            u8pixel.y,
+                            u8pixel.z
                         ))
                     );
                 } else {
-                    let pixel = pixel * 255.0;
+                    let u8pixel = pixel.map(|a| (a * 255.0) as u8);
+                    if prev_color == Some(u8pixel) {
+                        cmd.push(' ');
+                        continue;
+                    }
+                    prev_color = Some(u8pixel);
+
                     cmd += &format!(
                         "{} ",
                         termion::color::Bg(termion::color::Rgb(
-                            pixel.x as u8,
-                            pixel.y as u8,
-                            pixel.z as u8
+                            u8pixel.x,
+                            u8pixel.y,
+                            u8pixel.z
                         ))
                     );
                 }
             }
-            cmd += "\n";
         }
 
         cmd

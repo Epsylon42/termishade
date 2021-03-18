@@ -66,6 +66,7 @@ pub struct Webrender {
     pub uniform: Uniform,
     renderer: ColorDepthRenderer,
     target: TermionTarget,
+    pub original_num_vertices: usize,
 }
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
@@ -74,6 +75,7 @@ impl Webrender {
     pub fn new(width: usize, height: usize, rgb: bool, obj: &[u8]) -> Result<Webrender, ErrString> {
         let model: obj::Obj =
             obj::load_obj(std::io::Cursor::new(obj)).map_err(|e| ErrString::from(format!("Invalid object: {}", e)))?;
+        let original_num_vertices = model.vertices.len();
 
         let mut model = model
             .indices
@@ -111,6 +113,7 @@ impl Webrender {
             uniform,
             renderer,
             target,
+            original_num_vertices,
         })
     }
 

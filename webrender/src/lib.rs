@@ -16,20 +16,21 @@ type ErrString = String;
 
 struct CubeProgram;
 
-struct Vertex {
-    pos: glm::Vec3,
-    norm: glm::Vec3,
+pub struct Vertex {
+    pub pos: glm::Vec3,
+    pub norm: glm::Vec3,
 }
 
-struct Uniform {
-    model: glm::Mat4,
-    pv: glm::Mat4,
-    light: glm::Vec3,
+pub struct Uniform {
+    pub model: glm::Mat4,
+    pub pv: glm::Mat4,
+    pub light: glm::Vec3,
 }
 
 #[derive(Clone, Copy, Interpolate)]
 struct Intermediate {
     normal: glm::Vec3,
+    color: glm::Vec3,
 }
 
 impl Program for CubeProgram {
@@ -43,25 +44,26 @@ impl Program for CubeProgram {
         let Uniform { model, pv, .. } = *uniform;
 
         let pos = pv * model * v.pos.ext(1.0);
-        (pos, Intermediate { normal: v.norm })
+        let normal = (model * v.norm.ext(0.0)).xyz().normalize();
+        let color = v.norm.abs();
+        (pos, Intermediate { normal, color })
     }
 
     fn fragment(&self, _: &glm::Vec4, int: &Self::Intermediate, uniform: &Uniform) -> glm::Vec4 {
-        let Intermediate { normal } = *int;
-        let Uniform { model, light, .. } = *uniform;
+        let Intermediate { normal, color, .. } = *int;
+        let Uniform { light, .. } = *uniform;
 
-        let normal = (model * normal.ext(0.0)).xyz().normalize();
         let brightness = light.normalize().dot(&normal);
-        let light = normal.abs() * brightness;
+        let light = color.abs() * brightness;
         (light.map(|a| a.max(0.0)) + glm::Vec3::repeat(0.05)).ext(1.0)
     }
 }
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub struct Webrender {
-    t: f32,
-    model: Vec<Vertex>,
-    uniform: Uniform,
+    pub t: f32,
+    pub model: Vec<Vertex>,
+    pub uniform: Uniform,
     renderer: ColorDepthRenderer,
     target: TermionTarget,
 }
@@ -69,11 +71,11 @@ pub struct Webrender {
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 impl Webrender {
     #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
-    pub fn new(width: usize, height: usize, rgb: bool, obj: &str) -> Result<Webrender, ErrString> {
+    pub fn new(width: usize, height: usize, rgb: bool, obj: &[u8]) -> Result<Webrender, ErrString> {
         let model: obj::Obj =
-            obj::load_obj(std::io::Cursor::new(obj)).map_err(|_| ErrString::from("Invalid object"))?;
+            obj::load_obj(std::io::Cursor::new(obj)).map_err(|e| ErrString::from(format!("Invalid object: {}", e)))?;
 
-        let model = model
+        let mut model = model
             .indices
             .iter()
             .map(|&i| {
@@ -89,14 +91,18 @@ impl Webrender {
             .reduced_palette(!rgb);
         let renderer = ColorDepthRenderer::new(width, height);
 
+        Self::center_model(&mut model);
+        let model_size = Self::model_size(&model);
+        let camera_pos = glm::vec3(-5.0, 3.0, -4.0).normalize() * model_size * 2.0;
+
         let projection =
             glm::perspective::<f32>(width as f32 / height as f32, 3.14 / 3.0, 0.1, 10.0);
-        let view = glm::look_at(&glm::vec3(-5.0, 3.0, -4.0), &glm::zero(), &glm::Vec3::y());
+        let view = glm::look_at(&camera_pos, &glm::zero(), &glm::Vec3::y());
 
         let uniform = Uniform {
             model: glm::identity(),
             pv: projection * view,
-            light: glm::vec3(-1.0, 1.0, 1.0),
+            light: glm::vec3(-1.0, 1.0, 1.0)
         };
 
         Ok(Webrender {
@@ -106,6 +112,23 @@ impl Webrender {
             renderer,
             target,
         })
+    }
+
+    fn center_model(model: &mut [Vertex]) {
+        let center = model.iter()
+            .map(|v| v.pos)
+            .sum::<glm::Vec3>() / model.len() as f32;
+
+        for v in model {
+            v.pos -= center;
+        }
+    }
+
+    fn model_size(model: &[Vertex]) -> f32 {
+        model.iter()
+            .map(|v| v.pos.magnitude())
+            .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+            .unwrap_or_default()
     }
 
     pub fn step(&mut self, dt: f32) {

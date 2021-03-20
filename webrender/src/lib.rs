@@ -136,7 +136,10 @@ impl Webrender {
 
     pub fn step(&mut self, dt: f32) {
         self.t += dt;
-        self.uniform.model = glm::rotation(self.t, &glm::Vec3::y())
+
+        let rotation = glm::rotation(self.t, &glm::Vec3::y());
+        self.uniform.model = rotation;
+        self.uniform.light = (rotation.transpose() * glm::vec4(-1.0, 1.0, 1.0, 0.0)).xyz();
     }
 
     pub fn render(&mut self) -> String {

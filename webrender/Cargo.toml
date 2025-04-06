@@ -14,11 +14,11 @@ wasm = ["termion/null", "wasm-bindgen"]
 termion-target = { path = "../termion-target" }
 termion = { path = "../termion" }
 nalgebra-glm = "0.7.0"
-obj-rs = "0.6.1"
+obj-rs = "0.7.4"
 derive-interpolate = { path = "../derive-interpolate" }
 
 [dependencies.wasm-bindgen]
-wasm-bindgen = "0.2.68"
+version = "0.2.68"
 optional = true
 
 [dependencies.termishade]

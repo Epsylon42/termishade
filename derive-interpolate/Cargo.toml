@@ -9,6 +9,6 @@ edition = "2018"
 proc-macro = true
 
 [dependencies]
-synstructure = "0.12.4"
+synstructure = "0.13.1"
 quote = "1.0.7"
 proc-macro2 = "1.0.18"
